@@ -18,13 +18,23 @@ const router = {
   },
   nav: function (event) {
     event.preventDefault();
+    let currentPage = event.target.getAttribute('data-target');
+    if(!currentPage) {
+      event.target.dataset.target = "login";
+      event.target.dataset.lang = "login_label";
+
+      event.target.textContent = "Log In";
+
+      localStorage.clear();
+      return;
+    }
+    
     document.querySelectorAll('.nav-link').forEach(link => {
       link.classList.remove("link-active");
     });
 
     event.target.classList.add("link-active");
 
-    let currentPage = event.target.getAttribute('data-target');
     const activePage = document.querySelector('.active');
     if (activePage) {
       activePage.classList.remove('active');

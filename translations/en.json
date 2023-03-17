@@ -3,6 +3,7 @@
   "language_label": "Language:",
   "notes_label": "Notes",
   "login_label": "Log In",
+  "logout_label": "Log Out",
   "register_label": "Register",
   "favourites_label": "Favourites",
   "new-note-label": "New note:",
