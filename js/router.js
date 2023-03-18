@@ -12,6 +12,7 @@ const router = {
       link.addEventListener('click', router.nav);
     });
     
+    console.log(window.location)
     let path = location.pathname;
     let currPage = "notes"
     if(path === "/favourites") {
