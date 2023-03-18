@@ -174,7 +174,7 @@ button[type="submit"]:hover {
 }
 
 /* Style for the note list */
-#note-list {
+#note-list, #fav-note-list {
   list-style-type: none;
   margin: 20px auto;
   padding: 0;

@@ -2,35 +2,39 @@ const newNoteForm = document.getElementById('new-note-form');
 const newNoteInput = document.getElementById('note-content');
 const noteList = document.getElementById('note-list');
 
-let fetchedNotes;
 
-noteList.addEventListener("click", function(e) {
+// event for favouriting note
+document.addEventListener("click", function(e) {
+  // if the click happened on a favourite btn
   if(e.target.classList.contains("btn-fav")) {
-    const li = e.target.parentElement;
-    const img = e.target.children[0]
-    console.log(li)
+    const li = e.target.parentElement; // the List item
+    const img = e.target.children[0] // the image element on btn
     
+    // note Id
     const noteId = li.dataset.id;
 
+    // looping over all the notes
     fetchedNotes.forEach(note => {
+      // if note id matches to the one that was clicked on for favourite
       if(noteId == note.id) {
-        console.log("henlo", note.favourite)
+        // change it's favourite status and image
         note.favourite = !note.favourite
         if(note.favourite) {
           img.src = "images/bookmark-active.svg"
         } else {
           img.src = "images/bookmark-solid.svg"
         }
+        // update db
         fetch(`https://notifly-api-pzft.onrender.com/api/notes/${noteId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "Application/json",
             "Authorization": `Bearer ${userToken}`
           },
-          body: JSON.stringify(note)
+          body: JSON.stringify({favourite: note.favourite})
         })
         .then(res => res.json())
-        .then(data => console.log(data, note))
+        .then(() => fetchNotes()) // after updating fetched new notes from DB
       }
     })
   }
@@ -145,14 +149,13 @@ function editNoteElement(noteElement) {
 
   saveButton.addEventListener('click', () => {
     const note = input.value;
-    console.log(noteElement)
     noteElement.textContent = ""
     const favBtn = document.createElement("button");
     favBtn.classList.add("btn");
     favBtn.classList.add("btn-fav")
     const favBtnImg = document.createElement("img");
 
-    favBtnImg.src = "images/bookmark-"+ note.favourite ? "active" : "solid" + ".svg";
+    favBtnImg.src = "images/bookmark-"+ (note.favourite ? "active" : "solid") + ".svg";
     favBtn.appendChild(favBtnImg);
 
     noteElement.appendChild(favBtn);
@@ -203,7 +206,7 @@ function editNoteElement(noteElement) {
     favBtn.classList.add("btn-fav")
     const favBtnImg = document.createElement("img");
   
-    favBtnImg.src = "images/bookmark-"+ note.favourite ? "active" : "solid" + ".svg";
+    favBtnImg.src = "images/bookmark-"+ (note.favourite ? "active" : "solid") + ".svg";
 
     favBtn.appendChild(favBtnImg);
 
@@ -269,6 +272,8 @@ function fetchNotes() {
       console.log(notes)
       noteList.innerHTML = '';
       fetchedNotes = notes.data;
+      // add fav notes after fetching is successfull
+      addFavNotes(notes.data)
       notes.data.forEach((note) => {
         const noteElement = createNoteElement(note);
         noteList.appendChild(noteElement);

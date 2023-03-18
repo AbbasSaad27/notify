@@ -4,12 +4,14 @@ const regEmail = document.querySelector("#regForm .email");
 const regPass = document.querySelector("#regForm .pass");
 const loginEmail = document.querySelector("#loginForm .email");
 const loginPass = document.querySelector("#loginForm .pass");
-
+const favNoteList = document.querySelector("#fav-note-list");
 const navLoginBtn = document.querySelector("a[data-target='login']")
 
-const prevToken = JSON.parse(localStorage.getItem("token"))
+const prevToken = JSON.parse(localStorage.getItem("token"));
+let currLang = "en"
 
 let userToken = ""
+let fetchedNotes = [];
 
 if(prevToken) {
     userToken = prevToken
@@ -19,7 +21,11 @@ if(userToken) {
     navLoginBtn.dataset.target = "";
     navLoginBtn.dataset.lang = "logout_label";
 
-    navLoginBtn.textContent = "Log Out"
+    // loadTranslations(currLang)
+    // .then(translateElements)
+    // .catch(err => console.error(err));
+
+    navLoginBtn.textContent = "Log Out";
 }
 
 function errorHandler(message = 'Please fill up all the inputs!') {
@@ -66,7 +72,9 @@ regForm.addEventListener("submit", function(e) {
         navLoginBtn.dataset.target = "";
         navLoginBtn.dataset.lang = "logout_label";
 
-        navLoginBtn.textContent = "Log Out"
+        loadTranslations(currLang)
+        .then(translateElements)
+        .catch(err => console.error(err));
         const notesNavBtn = document.querySelector("a[data-target='notes']");
         notesNavBtn.click();
         fetchNotes();
@@ -111,7 +119,9 @@ loginForm.addEventListener("submit", function(e) {
         navLoginBtn.dataset.target = "";
         navLoginBtn.dataset.lang = "logout_label";
 
-        navLoginBtn.textContent = "Log Out"
+        loadTranslations(currLang)
+        .then(translateElements)
+        .catch(err => console.error(err));
         const notesNavBtn = document.querySelector("a[data-target='notes']");
         notesNavBtn.click();
         fetchNotes();
@@ -119,3 +129,14 @@ loginForm.addEventListener("submit", function(e) {
         // setTimeout(() => successContainer.remove(), 5000)
     })
 })
+
+function addFavNotes(allNotes) {
+    if(allNotes[0]) {
+        favNoteList.textContent = "";
+        const favNotes = allNotes.filter(note => note.favourite);
+        favNotes[0] && favNotes.forEach(note => {
+           const li = createNoteElement(note);
+           favNoteList.appendChild(li);
+        })
+    } 
+}

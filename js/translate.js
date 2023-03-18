@@ -20,6 +20,7 @@ function translateElements(translations) {
 const languageSelect = document.getElementById('language-select');
 languageSelect.addEventListener('change', (event) => {
   const lang = event.target.value;
+  currLang = lang;
   loadTranslations(lang)
     .then(translateElements)
     .catch(err => console.error(err));

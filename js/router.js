@@ -11,9 +11,19 @@ const router = {
     document.querySelectorAll('.nav-link').forEach(link => {
       link.addEventListener('click', router.nav);
     });
-
-    history.replaceState({ page: 'notes' }, 'Notes', '/notes');
-    window.addEventListener("load", router.onLoad)
+    
+    let path = location.pathname;
+    let currPage = "notes"
+    if(path === "/favourites") {
+      currPage = "favourites"
+    }
+    if(path === "/login" && userToken) {
+      currPage = "login"
+    } else {
+      currPage = "notes"
+    }
+    history.replaceState({ page: currPage }, currPage, '/'+currPage);
+    // window.addEventListener("load", router.onLoad)
     window.addEventListener('popstate', router.poppin);
   },
   nav: function (event) {
@@ -23,7 +33,11 @@ const router = {
       event.target.dataset.target = "login";
       event.target.dataset.lang = "login_label";
 
-      event.target.textContent = "Log In";
+      document.querySelector("#note-list").textContent = document.querySelector("#fav-note-list").textContent = ""
+
+      loadTranslations(currLang)
+      .then(translateElements)
+      .catch(err => console.error(err));
 
       localStorage.clear();
       return;
