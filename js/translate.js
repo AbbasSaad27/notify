@@ -21,12 +21,16 @@ const languageSelect = document.getElementById('language-select');
 languageSelect.addEventListener('change', (event) => {
   const lang = event.target.value;
   currLang = lang;
-  loadTranslations(lang)
-    .then(translateElements)
-    .catch(err => console.error(err));
+  callTranslate(lang);
 });
 
 // Load the translations and translate all elements on page load
-loadTranslations('en')
+
+// function for calling loadtranslations and then applying it to make the code more dry
+function callTranslate(lang) {  
+  loadTranslations(lang)
   .then(translateElements)
   .catch(err => console.error(err));
+}
+
+callTranslate("en");

@@ -1,6 +1,7 @@
 const newNoteForm = document.getElementById('new-note-form');
 const newNoteInput = document.getElementById('note-content');
 const noteList = document.getElementById('note-list');
+const favNoteList = document.querySelector("#fav-note-list");
 
 
 // event for favouriting note
@@ -20,9 +21,9 @@ document.addEventListener("click", function(e) {
         // change it's favourite status and image
         note.favourite = !note.favourite
         if(note.favourite) {
-          img.src = "images/bookmark-active.svg"
+          img.src = "images/star-active.svg"
         } else {
-          img.src = "images/bookmark-solid.svg"
+          img.src = "images/star-solid.svg"
         }
         // update db
         fetch(`https://notifly-api-pzft.onrender.com/api/notes/${noteId}`, {
@@ -34,13 +35,13 @@ document.addEventListener("click", function(e) {
           body: JSON.stringify({favourite: note.favourite})
         })
         .then(res => res.json())
-        .then(() => fetchNotes()) // after updating fetched new notes from DB
+        .then(() => fetchNotes()) // after updating fetching new updated notes from DB
       }
     })
   }
 })
 
-function createNoteElement(note, id) {
+function createNoteElement(note) {
   const li = document.createElement('li');
   li.setAttribute('data-id', note.id);
 
@@ -48,7 +49,7 @@ function createNoteElement(note, id) {
   favBtn.classList.add("btn");
   favBtn.classList.add("btn-fav")
   const favBtnImg = document.createElement("img");
-  favBtnImg.src = "images/bookmark-"+ (note.favourite ? "active" : "solid") + ".svg"
+  favBtnImg.src = "images/star-"+ (note.favourite ? "active" : "solid") + ".svg"
 
   favBtn.appendChild(favBtnImg);
 
@@ -61,18 +62,22 @@ function createNoteElement(note, id) {
 
   const editButton = document.createElement('button');
   editButton.classList.add("mr-1")
-  editButton.textContent = 'Edit'; //editButton.setAttribute('data-lang', 'edit-button'); Find a way to implement this one without bugs..
+  // editButton.textContent = 'Edit'; //editButton.setAttribute('data-lang', 'edit-button'); Find a way to implement this one without bugs..
+  editButton.dataset.lang = "edit-button";
   editButton.addEventListener('click', () => {
     editNoteElement(li);
   });
   buttonContainer.appendChild(editButton);
 
   const deleteButton = document.createElement('button');
-  deleteButton.textContent = 'Delete';
+  // deleteButton.textContent = 'Delete';
+  deleteButton.dataset.lang = "delete-button"
   deleteButton.addEventListener('click', () => {
     deleteNoteElement(li);
   });
   buttonContainer.appendChild(deleteButton);
+
+  callTranslate(currLang);
 
   li.appendChild(buttonContainer);
 
@@ -129,7 +134,20 @@ function deleteNoteElement(noteElement) {
 
 function editNoteElement(noteElement) {
   const id = noteElement.getAttribute('data-id');
-  const noteText = noteElement.textContent.replace("EditDelete", "");
+  // removing the edit and delete button beforehand
+  noteElement.querySelectorAll('button').forEach(button => button.remove());
+  const noteText = noteElement.textContent;
+  // getting the note that is being edited
+  const editingNote = fetchedNotes.find(note => note.id == id);
+  
+  // making the favourites button anew
+  const favBtn = document.createElement("button");
+  favBtn.classList.add("btn");
+  favBtn.classList.add("btn-fav")
+  const favBtnImg = document.createElement("img");
+
+  favBtnImg.src = "images/star-"+ (editingNote.favourite ? "active" : "solid") + ".svg";
+  favBtn.appendChild(favBtnImg);
 
   // Create an input field with the current note as the default value
   const input = document.createElement('input');
@@ -140,30 +158,39 @@ function editNoteElement(noteElement) {
   noteElement.textContent = '';
   noteElement.appendChild(input);
 
+  // making the Edit and delete button anew and then appending them to buttonContainer
   const buttonContainer = document.createElement('div');
+  const span = document.createElement("span");
+  span.textContent = noteText;
+  const editButton = document.createElement('button');
+  editButton.classList.add("mr-1")
+
+  editButton.dataset.lang = "edit-button"; // this will determine which language to show for everyother button like this
+  // not setting their text now, will set them by calling the translator function!
+  editButton.addEventListener('click', () => {
+    editNoteElement(noteElement);
+  });
+  buttonContainer.appendChild(editButton);
+  const deleteButton = document.createElement('button');
+  deleteButton.dataset.lang = "delete-button";
+  // not setting their text now, will set them by calling the translator function!
+  deleteButton.addEventListener('click', () => {
+    deleteNoteElement(noteElement);
+  });
+  buttonContainer.appendChild(deleteButton);
+
+  // setting the text to buttons by calling translate function throught the line below
+  // callTranslate(currLang)
 
   // Add a 'Save' button to save the edited note
   const saveButton = document.createElement('button');
   saveButton.classList.add("mr-1")
-  saveButton.textContent = 'Save';
+  saveButton.dataset.lang = "save-button";
 
+  // event for saving content
   saveButton.addEventListener('click', () => {
     const note = input.value;
-    noteElement.textContent = ""
-    const favBtn = document.createElement("button");
-    favBtn.classList.add("btn");
-    favBtn.classList.add("btn-fav")
-    const favBtnImg = document.createElement("img");
-
-    favBtnImg.src = "images/bookmark-"+ (note.favourite ? "active" : "solid") + ".svg";
-    favBtn.appendChild(favBtnImg);
-
-    noteElement.appendChild(favBtn);
-
-    // Update the note element with the original note text
-    const span = document.createElement("span");
-    span.textContent = note;
-    noteElement.appendChild(span);
+    saveButton.disabled = true;
     fetch(`https://notifly-api-pzft.onrender.com/api/notes/${id}`, {
       method: 'PUT',
       headers: {
@@ -174,21 +201,17 @@ function editNoteElement(noteElement) {
     })
       .then(res => res.text())
       .then(() => {
-        // Add back the 'Edit' and 'Delete' buttons
-        const buttonContainer = document.createElement('div');
-        const editButton = document.createElement('button');
-        editButton.classList.add("mr-1")
-        editButton.textContent = 'Edit';
-        editButton.addEventListener('click', () => {
-          editNoteElement(noteElement);
-        });
-        buttonContainer.appendChild(editButton);
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
-        deleteButton.addEventListener('click', () => {
-          deleteNoteElement(noteElement);
-        });
-        buttonContainer.appendChild(deleteButton);
+
+        noteElement.textContent = ""
+
+        // setting the text for buttons by calling this
+        callTranslate(currLang);
+
+        // adding the elements
+        noteElement.appendChild(favBtn);
+
+        noteElement.appendChild(span);
+
         noteElement.appendChild(buttonContainer);
       })
       .catch(err => console.error(err));
@@ -196,63 +219,22 @@ function editNoteElement(noteElement) {
 
   // Add a 'Cancel' button to cancel the edit
   const cancelButton = document.createElement('button');
-  cancelButton.textContent = 'Cancel';
+  cancelButton.dataset.lang = "cancel-button";
 
   cancelButton.addEventListener('click', () => {
-    console.log(noteElement)
     noteElement.textContent = ""
-    const favBtn = document.createElement("button");
-    favBtn.classList.add("btn");
-    favBtn.classList.add("btn-fav")
-    const favBtnImg = document.createElement("img");
-  
-    favBtnImg.src = "images/bookmark-"+ (note.favourite ? "active" : "solid") + ".svg";
+    // setting the text for buttons by calling this
+    callTranslate(currLang);
 
-    favBtn.appendChild(favBtnImg);
-
+    // adding the elements
     noteElement.appendChild(favBtn);
-
-    // Update the note element with the original note text
-    const span = document.createElement("span");
-    span.textContent = noteText;
     noteElement.appendChild(span);
-    // Add back the 'Edit' and 'Delete' buttons
-    const buttonContainer = document.createElement('div');
-    const editButton = document.createElement('button');
-    editButton.classList.add("mr-1")
-
-    editButton.textContent = 'Edit';
-    editButton.addEventListener('click', () => {
-      editNoteElement(noteElement);
-    });
-    buttonContainer.appendChild(editButton);
-    const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'Delete';
-    deleteButton.addEventListener('click', () => {
-      deleteNoteElement(noteElement);
-    });
-    buttonContainer.appendChild(deleteButton);
     noteElement.appendChild(buttonContainer);
   });
 
-  const editButton = document.createElement('button');
-  editButton.classList.add("mr-1")
+  // setting the text for save and cancel button! :D
+  callTranslate(currLang);
 
-  editButton.textContent = 'Edit';
-  editButton.addEventListener('click', () => {
-    editNoteElement(noteElement);
-  });
-  buttonContainer.appendChild(editButton);
-
-  const deleteButton = document.createElement('button');
-  deleteButton.textContent = 'Delete';
-  deleteButton.addEventListener('click', () => {
-    deleteNoteElement(noteElement);
-  });
-  buttonContainer.appendChild(deleteButton);
-
-  // Remove the 'Edit' and 'Delete' buttons
-  noteElement.querySelectorAll('button').forEach(button => button.remove());
 
   // Add the save and cancel buttons to the note element
   noteElement.appendChild(saveButton);
@@ -282,6 +264,16 @@ function fetchNotes() {
     .catch(err => console.error(err));
 }
 
+function addFavNotes(allNotes) {
+  if(allNotes[0]) {
+      favNoteList.textContent = "";
+      const favNotes = allNotes.filter(note => note.favourite);
+      favNotes[0] && favNotes.forEach(note => {
+         const li = createNoteElement(note);
+         favNoteList.appendChild(li);
+      })
+  } 
+}
 // Add event listener for new note form submission
 newNoteForm.addEventListener('submit', (event) => {
   event.preventDefault();

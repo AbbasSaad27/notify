@@ -4,7 +4,6 @@ const regEmail = document.querySelector("#regForm .email");
 const regPass = document.querySelector("#regForm .pass");
 const loginEmail = document.querySelector("#loginForm .email");
 const loginPass = document.querySelector("#loginForm .pass");
-const favNoteList = document.querySelector("#fav-note-list");
 const navLoginBtn = document.querySelector("a[data-target='login']")
 
 const prevToken = JSON.parse(localStorage.getItem("token"));
@@ -130,13 +129,3 @@ loginForm.addEventListener("submit", function(e) {
     })
 })
 
-function addFavNotes(allNotes) {
-    if(allNotes[0]) {
-        favNoteList.textContent = "";
-        const favNotes = allNotes.filter(note => note.favourite);
-        favNotes[0] && favNotes.forEach(note => {
-           const li = createNoteElement(note);
-           favNoteList.appendChild(li);
-        })
-    } 
-}
